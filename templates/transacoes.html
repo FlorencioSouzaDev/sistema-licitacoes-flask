@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Controle de Saldo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Saldo e Transações</h2>
+    <!-- O botão para voltar já está no menu, mas pode ser útil aqui também -->
+</div>
+
+<div class="row">
+    <!-- Coluna da Esquerda: Saldo e Lançamento -->
+    <div class="col-md-5">
+        <!-- Card com o saldo atual -->
+        <div class="card text-white bg-success mb-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">SALDO DISPONÍVEL ATUAL</h5>
+                <p class="card-text display-4 fw-bold">R$ {{ "%.2f"|format(saldo_atual) }}</p>
+            </div>
+        </div>
+
+        <!-- Card com o formulário de nova transação -->
+        <div class="card mb-4">
+            <div class="card-header">Lançar Nova Transação Manual</div>
+            <div class="card-body">
+                <!-- O 'action' aponta para a rota que criamos no app.py -->
+                <form action="{{ url_for('add_transacao') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <input type="text" class="form-control" name="descricao" id="descricao" placeholder="Ex: Aporte de capital, Custo com certidões" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="valor" class="form-label">Valor (R$)</label>
+                            <input type="number" step="0.01" class="form-control" name="valor" id="valor" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="tipo" class="form-label">Tipo</label>
+                            <select class="form-select" name="tipo" id="tipo" required>
+                                <option value="credito">Crédito (Entrada)</option>
+                                <option value="debito">Débito (Saída)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Registrar Transação</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Coluna da Direita: Extrato -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">Extrato de Transações</div>
+             <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Data</th>
+                            <th scope="col">Descrição</th>
+                            <th scope="col" class="text-end">Valor (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Loop que exibe cada transação -->
+                        {% for transacao in transacoes %}
+                        <tr>
+                            <td>{{ transacao.data.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>{{ transacao.descricao }}</td>
+                            <!-- Lógica para colorir os valores -->
+                            {% if transacao.valor > 0 %}
+                                <td class="text-end text-success fw-bold">+ {{ "%.2f"|format(transacao.valor) }}</td>
+                            {% else %}
+                                <td class="text-end text-danger fw-bold">{{ "%.2f"|format(transacao.valor) }}</td>
+                            {% endif %}
+                        </tr>
+                        <!-- Mensagem para quando não há transações -->
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4">Nenhuma transação registrada. Use o formulário ao lado para adicionar o saldo inicial.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+             </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

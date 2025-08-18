@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard de Desempenho{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Dashboard de Desempenho</h2>
+     <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar ao Painel Principal
+    </a>
+    <!-- dashboard.html -->
+
+<!-- ============================================= -->
+<!-- NOVO: FORMULÁRIO DE FILTRO DE DATAS           -->
+<!-- ============================================= -->
+<!-- SUBSTITUA O CARD DE FILTROS INTEIRO POR ESTE NOVO CÓDIGO -->
+<div class="card bg-light mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('dashboard') }}" method="GET" class="row g-3 align-items-end">
+            
+            <div class="col-lg-4 col-md-12">
+                <label for="start_date" class="form-label fw-bold">Data de Início</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+            </div>
+
+            <div class="col-lg-4 col-md-12">
+                <label for="end_date" class="form-label fw-bold">Data de Fim</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+            </div>
+
+            <!-- Coluna com os botões de Ação -->
+            <div class="col-lg-4 col-md-12">
+                <div class="d-flex gap-2">
+                    <!-- Botão 1: Aplicar Filtro -->
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-funnel-fill"></i> Filtrar
+                    </button>
+                    <!-- Botão 2: Limpar Filtro -->
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary flex-grow-1">
+                        <i class="bi bi-eraser-fill"></i> Limpar
+                    </a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- O restante do arquivo (KPIs e Gráficos) continua abaixo... -->
+    
+</div>
+
+<!-- ======================= -->
+<!-- LINHA DE KPIs (CARDS) -->
+<!-- ======================= -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase">Taxa de Sucesso</h6>
+                <p class="card-text display-5 fw-bold">{{ "%.1f"|format(taxa_sucesso) }}%</p>
+                <small class="text-white-50">{{ total_vencidas }} de {{ total_participadas }} participações</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase">Faturamento Total</h6>
+                <p class="card-text display-5 fw-bold">R$ {{ "%.2f"|format(faturamento_total) }}</p>
+                <small class="text-white-50">Soma das propostas vencidas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase">Lucro Bruto Total</h6>
+                <p class="card-text display-5 fw-bold">R$ {{ "%.2f"|format(lucro_bruto_total) }}</p>
+                 <small class="text-white-50">Soma dos lucros das propostas vencidas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+    <div class="card text-white bg-warning h-100">
+        <div class="card-body">
+            <h6 class="card-title text-uppercase">Ticket Médio Vencido</h6>
+            <p class="card-text display-5 fw-bold">R$ {{ "%.2f"|format(valor_medio_proposta) }}</p>
+             <small class="text-white-50">Valor médio por proposta ganha</small>
+        </div>
+    </div>
+</div>
+     <div class="col-lg-3 col-md-6">
+        <div class="card bg-light h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase">Licitações Vencidas</h6>
+                <p class="card-text display-5 fw-bold">{{ total_vencidas }}</p>
+                <small class="text-muted">Total de contratos ganhos</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== -->
+<!-- LINHA DOS GRÁFICOS -->
+<!-- =================== -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">Faturamento Mensal (Últimos 12 Meses)</div>
+            <div class="card-body">
+                <canvas id="faturamentoMensalChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Funil de Licitações por Status</div>
+            <div class="card-body">
+                <canvas id="funilStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-4 mt-1">
+    <div class="col-12">
+         <div class="card">
+            <div class="card-header">Top 5 Órgãos por Nº de Vitórias</div>
+            <div class="card-body">
+                <canvas id="orgaosChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Importa a biblioteca Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Scripts para criar os gráficos -->
+<script>
+    // Converte os dados do Jinja2 para variáveis JavaScript
+    const funilLabels = {{ funil_labels | tojson }};
+    const funilData = {{ funil_data | tojson }};
+    const faturamentoLabels = {{ faturamento_labels | tojson }};
+    const faturamentoData = {{ faturamento_data | tojson }};
+    const orgaosLabels = {{ orgaos_labels | tojson }};
+    const orgaosData = {{ orgaos_data | tojson }};
+
+    // 1. Gráfico de Funil (Pizza)
+    const ctxFunil = document.getElementById('funilStatusChart');
+    new Chart(ctxFunil, {
+        type: 'doughnut', // ou 'pie'
+        data: {
+            labels: funilLabels,
+            datasets: [{
+                label: '# de Licitações',
+                data: funilData,
+                backgroundColor: ['#0d6efd', '#198754', '#dc3545', '#ffc107', '#6c757d', '#0dcaf0'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+
+    // 2. Gráfico de Faturamento (Linha)
+    const ctxFaturamento = document.getElementById('faturamentoMensalChart');
+    new Chart(ctxFaturamento, {
+        type: 'line',
+        data: {
+            labels: faturamentoLabels,
+            datasets: [{
+                label: 'Faturamento Mensal (R$)',
+                data: faturamentoData,
+                fill: false,
+                borderColor: '#198754',
+                tension: 0.1,
+                backgroundColor: '#198754'
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // 3. Gráfico de Órgãos (Barras)
+    const ctxOrgaos = document.getElementById('orgaosChart');
+    new Chart(ctxOrgaos, {
+        type: 'bar',
+        data: {
+            labels: orgaosLabels,
+            datasets: [{
+                label: 'Número de Vitórias',
+                data: orgaosData,
+                backgroundColor: '#0d6efd',
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y', // Deixa as barras na horizontal para melhor leitura dos nomes
+             plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+</script>
+{% endblock %}

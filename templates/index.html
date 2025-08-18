@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Painel de Licitações{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Painel Principal de Licitações</h2>
+        <p class="text-muted">Acompanhe e gerencie todas as suas oportunidades aqui.</p>
+    </div>
+    <!-- Card que mostra o saldo atual, vindo do backend -->
+    <div class="col-md-4 d-flex align-items-center justify-content-end">
+        <div class="card text-white bg-success w-100">
+            <div class="card-body text-center">
+                <h6 class="card-title text-uppercase">Saldo Disponível</h6>
+                <p class="card-text fs-4 fw-bold">R$ {{ "%.2f"|format(saldo_atual) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulário para Adicionar Nova Licitação -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Adicionar Nova Oportunidade</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('add_licitacao') }}" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="orgao_cliente" class="form-label">Órgão / Cliente</label>
+                    <input type="text" class="form-control" id="orgao_cliente" name="orgao_cliente" placeholder="Ex: Prefeitura Municipal" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="num_edital" class="form-label">Nº do Edital / Pregão</label>
+                    <input type="text" class="form-control" id="num_edital" name="num_edital" placeholder="Ex: 123/2024" required>
+                </div>
+                <div class="col-md-8">
+                    <label for="objeto" class="form-label">Objeto da Licitação</label>
+                    <input type="text" class="form-control" id="objeto" name="objeto" placeholder="Ex: Aquisição de computadores" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="data_abertura" class="form-label">Data de Abertura</label>
+                    <input type="date" class="form-control" id="data_abertura" name="data_abertura" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Cadastrar Licitação</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela com a Lista de Licitações -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Minhas Licitações</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Status</th>
+                    <th scope="col">Órgão/Cliente</th>
+                    <th scope="col">Edital</th>
+                    <th scope="col">Objeto</th>
+                    <th scope="col">Data Abertura</th>
+                    <th scope="col">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop para exibir cada licitação passada pelo backend -->
+                {% for licitacao in licitacoes %}
+                <tr>
+                    <td><span class="badge bg-primary">{{ licitacao.status }}</span></td>
+                    <td>{{ licitacao.orgao_cliente }}</td>
+                    <td>{{ licitacao.num_edital }}</td>
+                    <td>{{ licitacao.objeto | truncate(50) }}</td> <!-- Trunca o objeto para não quebrar a tabela -->
+                    <td>{{ licitacao.data_abertura.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <!-- Link dinâmico que leva para a página de detalhes daquela licitação específica -->
+                        <a href="{{ url_for('licitacao_detalhe', id=licitacao.id) }}" class="btn btn-sm btn-outline-primary" title="Ver Detalhes">
+                            <i class="bi bi-eye"></i> Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <!-- Mensagem exibida se a lista de licitações estiver vazia -->
+                <tr>
+                    <td colspan="6" class="text-center py-4">Nenhuma licitação cadastrada ainda. Use o formulário acima para começar!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

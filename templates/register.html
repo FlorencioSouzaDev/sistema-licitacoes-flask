@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Registro de Usuário{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h3 class="mb-0">Criar Nova Conta</h3></div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nome de Usuário</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                     <!-- Pode-se adicionar um campo de confirmação de senha aqui -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-block">Registrar</-button>
+                    </div>
+                </form>
+            </div>
+             <div class="card-footer text-center">
+                <small class="text-muted">
+                    Já tem uma conta? <a href="{{ url_for('login') }}">Faça o login</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
