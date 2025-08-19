@@ -346,14 +346,6 @@ def dashboard():
         end_date=end_date.strftime('%Y-%m-%d')
     )
 
-@app.route('/init_db')
-def icriar_meu_banco_123_agora():
-    try:
-        with app.app_context():
-            db.create_all()
-        return "Banco de dados inicializado com sucesso! (A tabela 'user' e outras foram criadas)."
-    except Exception as e:
-        return f"Ocorreu um erro ao inicializar o banco de dados: {e}"
 
 # --- INICIALIZAÇÃO ---
 
